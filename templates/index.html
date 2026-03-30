@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% block title %}หน้าหลัก{% endblock %}
+
+{% block extra_css %}
+<style>
+  .hero {
+    background: linear-gradient(135deg, #1d2b3a 0%, #2d4a6e 100%);
+    color: white;
+    padding: 50px 0 40px;
+    margin-bottom: 0;
+  }
+  .hero h1 { font-size: 2.2rem; font-weight: 600; }
+  .hero p { opacity: 0.85; }
+  .search-bar {
+    background: white;
+    border-radius: 12px;
+    padding: 6px 6px 6px 16px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .search-bar input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-family: 'Kanit', sans-serif;
+    font-size: 1rem;
+  }
+  .search-bar button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 500;
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+    padding: 12px 0;
+    position: sticky;
+    top: 58px;
+    z-index: 100;
+  }
+  .filter-pill {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: #495057;
+    white-space: nowrap;
+    transition: all .15s;
+  }
+  .filter-pill:hover, .filter-pill.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  .filter-section { overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+  .filter-section::-webkit-scrollbar { height: 3px; }
+  .filter-section::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 10px; }
+
+  /* Product Cards */
+  .product-card {
+    background: white;
+    border-radius: 12px;
+    border: none;
+    overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+    height: 100%;
+    cursor: pointer;
+  }
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+  }
+  .product-img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    background: #f8f9fa;
+  }
+  .product-img-placeholder {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #adb5bd;
+  }
+  .card-body { padding: 12px 14px 14px; }
+  .product-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    min-height: 2.8em;
+  }
+  .product-price {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  .product-sold { font-size: 0.78rem; color: #adb5bd; }
+  .stock-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .btn-add-cart {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 100%;
+    padding: 8px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: background .15s;
+    margin-top: 8px;
+  }
+  .btn-add-cart:hover { background: var(--primary-dark); }
+  .btn-add-cart:disabled {
+    background: #adb5bd;
+    cursor: not-allowed;
+  }
+
+  /* Brand filter */
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: #495057;
+    background: white;
+    transition: all .15s;
+  }
+  .brand-logo:hover, .brand-logo.active {
+    border-color: var(--dark);
+    color: var(--dark);
+    background: #f8f9fa;
+    font-weight: 500;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #adb5bd;
+  }
+  .empty-state i { font-size: 4rem; margin-bottom: 16px; }
+
+  /* Section title */
+  .section-title {
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--dark);
+    border-left: 4px solid var(--primary);
+    padding-left: 12px;
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero + Search -->
+<div class="hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-7">
+        <p class="mb-2 opacity-75 small"><i class="bi bi-shield-check me-1"></i>รับประกันสินค้าของแท้ 100%</p>
+        <h1>อะไหล่มอเตอร์ไซค์<br>ราคาดี ส่งไว ทั่วไทย </h1>
+        <p class="mt-2 mb-4">Honda · Yamaha · Suzuki · Kawasaki และอีกมากมาย</p>
+        <div class="search-bar">
+          <form action="/" method="GET" style="display:flex;flex:1;gap:8px;align-items:center">
+            <i class="bi bi-search text-muted"></i>
+            <input name="q" type="text" placeholder="ค้นหาอะไหล่ เช่น ผ้าเบรก, สายไฟ..." value="{{ search }}">
+            {% if selected_cat %}<input type="hidden" name="category" value="{{ selected_cat }}">{% endif %}
+            {% if selected_brand %}<input type="hidden" name="brand" value="{{ selected_brand }}">{% endif %}
+            <button type="submit">ค้นหา</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-md-5 text-center d-none d-md-block">
+        <div style="font-size: 8rem; opacity: 0.15">🔧</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div class="container">
+    <div class="filter-section d-flex gap-2 align-items-center">
+      <span class="text-muted small me-1" style="white-space:nowrap">หมวดหมู่:</span>
+      <a href="/?{% if search %}q={{ search }}&{% endif %}{% if selected_brand %}brand={{ selected_brand }}{% endif %}"
+         class="filter-pill {% if not selected_cat %}active{% endif %}">ทั้งหมด</a>
+      {% for cat in categories %}
+        <a href="/?category={{ cat }}{% if search %}&q={{ search }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}"
+           class="filter-pill {% if selected_cat == cat %}active{% endif %}">{{ cat }}</a>
+      {% endfor %}
+      <span class="text-muted mx-1">|</span>
+      <span class="text-muted small me-1" style="white-space:nowrap">ยี่ห้อรถ:</span>
+      {% for b in brands %}
+        <a href="/?brand={{ b }}{% if search %}&q={{ search }}{% endif %}{% if selected_cat %}&category={{ selected_cat }}{% endif %}"
+           class="brand-logo {% if selected_brand == b %}active{% endif %}">{{ b }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Products -->
+<div class="container py-4">
+
+  {% if search or selected_cat or selected_brand %}
+    <p class="text-muted mb-3 small">
+      พบ {{ parts|length }} รายการ
+      {% if search %}สำหรับ "<strong>{{ search }}</strong>"{% endif %}
+      {% if selected_cat %} ในหมวด <strong>{{ selected_cat }}</strong>{% endif %}
+      {% if selected_brand %} ยี่ห้อรถ <strong>{{ selected_brand }}</strong>{% endif %}
+      — <a href="/" class="text-danger">ล้างตัวกรอง</a>
+    </p>
+  {% endif %}
+
+  {% if parts %}
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
+      {% for item in parts %}
+      <div class="col">
+        <div class="product-card card">
+          {% if item.image %}
+            <img src="{{ item.image }}" class="product-img" alt="{{ item.name }}" loading="lazy">
+          {% else %}
+            <div class="product-img-placeholder">
+              <i class="bi bi-gear-wide-connected"></i>
+            </div>
+          {% endif %}
+          <div class="card-body">
+            <p class="product-name">{{ item.name }}</p>
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="product-price">฿{{ "{:,.0f}".format(item.price) }}</span>
+              {% if item.quantity > 0 %}
+                <span class="badge bg-success-subtle text-success stock-badge">มีสินค้า</span>
+              {% else %}
+                <span class="badge bg-secondary-subtle text-secondary stock-badge">หมด</span>
+              {% endif %}
+            </div>
+            <p class="product-sold">ขายแล้ว {{ item.get('sold', 0) }} ชิ้น</p>
+
+            {% if item.compatible_brands %}
+              <div class="mb-2">
+                {% for b in item.compatible_brands %}
+                  <span class="badge bg-light text-secondary border" style="font-size:0.7rem">{{ b }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if session.username %}
+              {% if item.quantity > 0 %}
+                <form action="/cart/add/{{ item._id }}" method="POST">
+                  <input type="hidden" name="qty" value="1">
+                  <button class="btn-add-cart" type="submit">
+                    <i class="bi bi-cart-plus me-1"></i>เพิ่มลงตะกร้า
+                  </button>
+                </form>
+              {% else %}
+                <button class="btn-add-cart" disabled>สินค้าหมด</button>
+              {% endif %}
+            {% else %}
+              <a href="/login" class="btn-add-cart d-block text-center text-decoration-none">
+                <i class="bi bi-person me-1"></i>เข้าสู่ระบบเพื่อซื้อ
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <div><i class="bi bi-search"></i></div>
+      <h5>ไม่พบสินค้า</h5>
+      <p>ลองค้นหาด้วยคำอื่น หรือ <a href="/" class="text-danger">ดูสินค้าทั้งหมด</a></p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

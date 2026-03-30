@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}ชำระเงิน{% endblock %}
+
+{% block extra_css %}
+<style>
+  .pay-card { background: white; border-radius: 16px; padding: 32px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); max-width: 520px; margin: auto; }
+  .order-id-badge { background: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 8px; padding: 10px 16px; font-family: monospace; font-size: 1.1rem; text-align: center; }
+  .qr-box { border: 3px solid #dee2e6; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #fafafa; }
+  .qr-img { width: 220px; height: 220px; display: block; margin: 0 auto; }
+  .amount-display { background: linear-gradient(135deg, #e63946, #c1121f); color: white; border-radius: 12px; padding: 16px 24px; text-align: center; }
+  .upload-zone { border: 2px dashed #dee2e6; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: 0.3s; }
+  .upload-zone:hover { border-color: #e63946; background: #fff5f5; }
+  .upload-zone input { display: none; }
+  .btn-upload { background: #e63946; color: white; border: none; border-radius: 8px; padding: 12px 28px; width: 100%; margin-top: 12px; font-weight: 500; }
+  .step { display: flex; gap: 12px; margin-bottom: 16px; font-size: 0.9rem; }
+  .step-num { background: #e63946; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="pay-card">
+    <div class="text-center mb-4">
+      <h5 class="fw-bold">💳 ชำระเงิน</h5>
+      <p class="text-muted small">คำสั่งซื้อหมายเลข: {{ order.order_id }}</p>
+    </div>
+
+    <div class="amount-display mb-4">
+      <p class="mb-1 opacity-75 small">ยอดที่ต้องชำระ</p>
+      <h2 class="fw-bold mb-0">฿{{ "{:,.2f}".format(order.total) }}</h2>
+    </div>
+
+    {% if order.order_status == 'รอชำระเงิน' %}
+    <div class="qr-box mb-4">
+      <p class="text-muted small mb-0">สแกน QR เพื่อชำระเงิน</p>
+      {% if promptpay_number %}
+        <img class="qr-img" src="https://promptpay.io/{{ promptpay_number }}/{{ order.total }}.png" alt="QR Code">
+        <div class="text-center">
+          <p class="mb-0 small text-muted">พร้อมเพย์หมายเลข</p>
+          <strong style="font-size:1.1rem; letter-spacing:2px">{{ promptpay_number }}</strong>
+        </div>
+      {% else %}
+        <div class="alert alert-warning py-2 small">ไม่พบข้อมูลเบอร์พร้อมเพย์</div>
+      {% endif %}
+    </div>
+
+    <div class="steps mb-4">
+      <div class="step"><div class="step-num">1</div><div>โอนเงินตามยอด <strong>฿{{ "{:,.2f}".format(order.total) }}</strong></div></div>
+      <div class="step"><div class="step-num">2</div><div>แนบรูปสลิปหลักฐานการโอนด้านล่าง</div></div>
+    </div>
+
+    <form action="/order/upload_slip/{{ order._id }}" method="POST" enctype="multipart/form-data">
+      <div class="upload-zone" onclick="document.getElementById('slip-file').click()">
+        <i class="bi bi-cloud-upload" style="font-size:2rem;color:#adb5bd"></i>
+        <p class="text-muted small mb-0 mt-2" id="file-name">คลิกเพื่อเลือกไฟล์สลิป</p>
+        <input type="file" name="slip" id="slip-file" accept="image/*" required 
+               onchange="document.getElementById('file-name').textContent = this.files[0].name">
+      </div>
+      <button type="submit" class="btn-upload">ส่งหลักฐานการโอนเงิน</button>
+    </form>
+
+    {% elif order.order_status == 'รอตรวจสอบ' %}
+    <div class="text-center py-4">
+        <div class="mb-3 text-info">
+            <i class="bi bi-clock-history" style="font-size: 4rem;"></i>
+        </div>
+        <h5 class="fw-bold">ได้รับสลิปเรียบร้อยแล้ว</h5>
+        <p class="text-muted">กำลังรอเจ้าหน้าที่ตรวจสอบยอดเงินของคุณครับ</p>
+        <div class="alert alert-light border small mt-3">
+            คุณสามารถตรวจสอบสถานะได้ที่เมนู "รายการสั่งซื้อของฉัน"
+        </div>
+    {% endif %}
+
+    <hr class="my-4">
+    <a href="/my-orders" class="btn btn-outline-secondary btn-sm w-100">ย้อนกลับไปดูรายการสั่งซื้อ</a>
+  </div>
+</div>
+{% endblock %}

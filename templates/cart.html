@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}ตะกร้าสินค้า{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cart-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f8f9fa;
+  }
+  .item-img-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #adb5bd;
+    flex-shrink: 0;
+  }
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    width: fit-content;
+  }
+  .qty-btn {
+    border: none;
+    background: #f8f9fa;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #495057;
+  }
+  .qty-btn:hover { background: #e9ecef; }
+  .qty-input {
+    width: 40px;
+    height: 32px;
+    border: none;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+    text-align: center;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 120px;
+  }
+  .btn-checkout {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    width: 100%;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+  }
+  .btn-checkout:hover { background: var(--primary-dark); }
+  .empty-cart {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h4 class="fw-600 mb-4"><i class="bi bi-cart3 me-2 text-danger"></i>ตะกร้าสินค้า
+    {% if cart %}<span class="text-muted fs-6 fw-400">({{ cart|length }} รายการ)</span>{% endif %}
+  </h4>
+
+  {% if cart %}
+  <div class="row g-4">
+    <div class="col-lg-8">
+      {% for item in cart %}
+      <div class="cart-item">
+        <div class="d-flex gap-3 align-items-center">
+          {% if item.image %}
+            <img src="{{ item.image }}" class="item-img" alt="{{ item.name }}">
+          {% else %}
+            <div class="item-img-placeholder"><i class="bi bi-gear-wide-connected"></i></div>
+          {% endif %}
+          <div class="flex-grow-1">
+            <p class="mb-1 fw-500">{{ item.name }}</p>
+            <p class="text-danger fw-600 mb-2">฿{{ "{:,.0f}".format(item.price) }}</p>
+            <div class="d-flex align-items-center gap-3">
+              <!-- Update qty form -->
+              <form action="/cart/update/{{ item.id }}" method="POST" class="d-flex align-items-center gap-2">
+                <div class="qty-control">
+                  <button type="submit" class="qty-btn" name="qty" value="{{ item.qty - 1 }}">−</button>
+                  <input type="number" class="qty-input" name="qty" value="{{ item.qty }}" min="0" max="99"
+                         onchange="this.form.submit()">
+                  <button type="submit" class="qty-btn" name="qty" value="{{ item.qty + 1 }}">+</button>
+                </div>
+              </form>
+              <span class="text-muted small">
+                รวม: <strong class="text-dark">฿{{ "{:,.0f}".format(item.price * item.qty) }}</strong>
+              </span>
+            </div>
+          </div>
+          <a href="/cart/remove/{{ item.id }}" class="btn btn-sm btn-outline-danger border-0"
+             onclick="return confirm('ลบสินค้านี้ออกจากตะกร้า?')">
+            <i class="bi bi-trash3"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+
+      <a href="/" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>เลือกสินค้าเพิ่มเติม
+      </a>
+    </div>
+
+    <!-- Summary -->
+    <div class="col-lg-4">
+      <div class="summary-card">
+        <h6 class="fw-600 mb-3">สรุปคำสั่งซื้อ</h6>
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">ราคาสินค้า ({{ cart|length }} รายการ)</span>
+          <span>฿{{ "{:,.0f}".format(total) }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">ค่าจัดส่ง</span>
+          <span class="text-success">ฟรี</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-4">
+          <span class="fw-600">ยอดรวมทั้งหมด</span>
+          <span class="fw-600 text-danger fs-5">฿{{ "{:,.0f}".format(total) }}</span>
+        </div>
+        <a href="/checkout" class="btn-checkout d-block text-center text-decoration-none">
+          <i class="bi bi-credit-card me-2"></i>ดำเนินการสั่งซื้อ
+        </a>
+        <p class="text-center text-muted small mt-3 mb-0">
+          <i class="bi bi-shield-check me-1 text-success"></i>ชำระเงินปลอดภัย 100%
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <div style="font-size: 4rem; margin-bottom: 16px;">🛒</div>
+    <h5 class="text-muted">ตะกร้าของคุณว่างเปล่า</h5>
+    <p class="text-muted small">เลือกสินค้าที่ต้องการแล้วเพิ่มลงตะกร้าได้เลย</p>
+    <a href="/" class="btn btn-danger mt-3">
+      <i class="bi bi-shop me-2"></i>เลือกซื้อสินค้า
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .admin-sidebar { position: fixed; left: 0; top: 58px; width: 220px; height: calc(100vh - 58px); background: #1a1d20; padding: 20px 0; z-index: 200; overflow-y: auto; }
+  .admin-sidebar .nav-link { color: rgba(255,255,255,0.7) !important; padding: 10px 20px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .admin-sidebar .nav-link.active { color: white !important; background: rgba(255,255,255,0.1); }
+  .admin-main { margin-left: 220px; padding: 24px; min-height: calc(100vh - 58px); background: #f8f9fa; }
+  .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); border-left: 4px solid #e63946; }
+  .table-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+  .product-thumb { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-sidebar">
+  <div class="px-3 mb-4"><div style="color:white;font-weight:600;font-size:1.1rem">THANATCHA SERVICE</div></div>
+  <a class="nav-link active" onclick="switchTab('products', event)"><i class="bi bi-box-seam"></i>สินค้า</a>
+  <a class="nav-link" onclick="switchTab('orders', event)"><i class="bi bi-bag-check"></i>คำสั่งซื้อ</a>
+  <hr class="text-secondary">
+  <a href="/" class="nav-link"><i class="bi bi-shop"></i>หน้าร้าน</a>
+</div>
+
+<div class="admin-main">
+  <div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card">ยอดขายรวม<div class="h4 mb-0 fw-bold">฿{{ "{:,.0f}".format(total_revenue or 0) }}</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="border-left-color:#4361ee">คำสั่งซื้อ<div class="h4 mb-0 fw-bold">{{ orders|length }}</div></div></div>
+    <div class="col-md-3"><div class="stat-card" style="border-left-color:#f77f00">รอตรวจสอบ<div class="h4 mb-0 fw-bold">{{ pending_orders|length }}</div></div></div>
+  </div>
+
+  <div id="pane-products">
+    <div class="table-card mb-4">
+      <h6 class="fw-bold mb-3">📦 เพิ่มสินค้าใหม่</h6>
+      <form action="/add" method="POST" enctype="multipart/form-data">
+        <div class="row g-2">
+          <div class="col-md-4"><input type="text" name="name" class="form-control form-control-sm" placeholder="ชื่ออะไหล่" required></div>
+          <div class="col-md-2"><input type="number" name="price" class="form-control form-control-sm" placeholder="ราคา" required></div>
+          <div class="col-md-2"><input type="number" name="qty" class="form-control form-control-sm" placeholder="สต็อก" required></div>
+          <div class="col-md-2">
+            <select name="category" class="form-select form-select-sm">
+              <option>เครื่องยนต์</option>
+              <option>ระบบไฟ</option>
+              <option>อุปกรณ์สิ้นเปลือง</option>
+              <option>ช่วงล่างและเบรค</option>
+            </select>
+          </div>
+          <div class="col-md-2"><button type="submit" class="btn btn-sm btn-danger w-100">เพิ่มสินค้า</button></div>
+        </div>
+      </form>
+    </div>
+    <div class="table-card">
+      <table class="table align-middle">
+        <thead><tr><th>สินค้า</th><th>ราคา</th><th>สต็อก</th><th>จัดการ</th></tr></thead>
+        <tbody>
+          {% for item in parts %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                {% if item.image %}<img src="{{ item.image }}" class="product-thumb">{% endif %}
+                <span>{{ item.name }}</span>
+              </div>
+            </td>
+            <td>฿{{ "{:,.0f}".format(item.price) }}</td>
+            <td><span class="badge {% if item.quantity <= 3 %}bg-danger{% else %}bg-light text-dark{% endif %}">{{ item.quantity }}</span></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#edit{{ item._id }}"><i class="bi bi-pencil"></i></button>
+                <a href="/delete/{{ item._id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('ลบรายการนี้ใช่หรือไม่?')"><i class="bi bi-trash"></i></a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="pane-orders" style="display:none">
+    <div class="table-card">
+      <table class="table align-middle">
+        <thead><tr><th>Order ID</th><th>ลูกค้า</th><th>ยอดเงิน</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.username }}</td>
+            <td class="fw-bold">฿{{ "{:,.0f}".format(order.total) }}</td>
+            <td>
+                <span class="badge {% if order.order_status == 'รอตรวจสอบ' %}bg-warning text-dark{% elif order.order_status == 'จัดส่งแล้ว' %}bg-success{% else %}bg-info text-dark{% endif %}">
+                    {{ order.order_status }}
+                </span>
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                {% if order.slip_image %}
+                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#viewSlip{{ order._id }}">
+                  <i class="bi bi-image"></i> ดูสลิป
+                </button>
+                {% endif %}
+                <form action="/admin/order/{{ order._id }}/status" method="POST" class="d-flex gap-1">
+                  <select name="status" class="form-select form-select-sm" style="width:130px">
+                    <option value="รอชำระเงิน" {% if order.order_status == 'รอชำระเงิน' %}selected{% endif %}>รอชำระเงิน</option>
+                    <option value="รอตรวจสอบ" {% if order.order_status == 'รอตรวจสอบ' %}selected{% endif %}>รอตรวจสอบ</option>
+                    <option value="จัดส่งแล้ว" {% if order.order_status == 'จัดส่งแล้ว' %}selected{% endif %}>จัดส่งแล้ว</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-dark">✓</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% for order in orders %}
+  {% if order.slip_image %}
+  <div class="modal fade" id="viewSlip{{ order._id }}" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">หลักฐานการโอน: {{ order.order_id }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center bg-light">
+          <img src="{{ order.slip_image }}" class="img-fluid rounded shadow" style="max-height: 500px;">
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% for item in parts %}
+<div class="modal fade" id="edit{{ item._id }}" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form action="/edit/{{ item._id }}" method="POST" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title">แก้ไขสินค้า: {{ item.name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="small">ชื่อสินค้า</label>
+              <input type="text" name="name" class="form-control" value="{{ item.name }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="small">ราคา (฿)</label>
+              <input type="number" name="price" class="form-control" value="{{ item.price }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="small">สต็อก</label>
+              <input type="number" name="qty" class="form-control" value="{{ item.quantity }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="small">หมวดหมู่</label>
+              <select name="category" class="form-select">
+                <option {% if item.category == 'เครื่องยนต์' %}selected{% endif %}>เครื่องยนต์</option>
+                <option {% if item.category == 'ระบบไฟ' %}selected{% endif %}>ระบบไฟ</option>
+                <option {% if item.category == 'อุปกรณ์สิ้นเปลือง' %}selected{% endif %}>อุปกรณ์สิ้นเปลือง</option>
+                <option {% if item.category == 'ช่วงล่างและเบรค' %}selected{% endif %}>ช่วงล่างและเบรค</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="small">เปลี่ยนรูปภาพ (ปล่อยว่างถ้าไม่เปลี่ยน)</label>
+              <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกการแก้ไข</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tab, event) {
+  document.getElementById('pane-products').style.display = (tab === 'products') ? 'block' : 'none';
+  document.getElementById('pane-orders').style.display = (tab === 'orders') ? 'block' : 'none';
+  document.querySelectorAll('.admin-sidebar .nav-link').forEach(l => l.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+</script>
+{% endblock %}

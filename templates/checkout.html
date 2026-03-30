@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}ชำระเงิน{% endblock %}
+
+{% block extra_css %}
+<style>
+  .section-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+  }
+  .section-card h6 { font-weight: 600; color: var(--dark); margin-bottom: 16px; }
+  .form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-color: #dee2e6;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.9rem;
+  }
+  .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(230,57,70,0.1); }
+  .payment-option {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all .15s;
+    margin-bottom: 10px;
+  }
+  .payment-option:hover { border-color: var(--primary); }
+  .payment-option.selected { border-color: var(--primary); background: #fff5f5; }
+  .payment-option input[type="radio"] { accent-color: var(--primary); }
+  .payment-icon { font-size: 1.5rem; }
+  .order-item-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.875rem;
+  }
+  .order-item-row:last-child { border-bottom: none; }
+  .order-item-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: #f0f0f0;
+    flex-shrink: 0;
+  }
+  .order-item-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    flex-shrink: 0;
+  }
+  .btn-confirm {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    width: 100%;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+  .btn-confirm:hover { background: var(--primary-dark); }
+  .summary-sticky {
+    position: sticky;
+    top: 120px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/cart" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <h4 class="fw-600 mb-0"><i class="bi bi-bag-check me-2 text-danger"></i>ยืนยันคำสั่งซื้อ</h4>
+  </div>
+
+  <form action="/checkout" method="POST">
+    <div class="row g-4">
+      <!-- Left column -->
+      <div class="col-lg-7">
+
+        <!-- ที่อยู่จัดส่ง -->
+        <div class="section-card">
+          <h6><i class="bi bi-geo-alt me-2 text-danger"></i>ที่อยู่จัดส่ง</h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small">ชื่อผู้รับ</label>
+              <input type="text" name="full_name" class="form-control"
+                     value="{{ user.full_name if user else '' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">เบอร์โทรศัพท์</label>
+              <input type="tel" name="phone" class="form-control"
+                     value="{{ user.phone if user else '' }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">ที่อยู่ (บ้านเลขที่ / หมู่บ้าน / ซอย / ถนน)</label>
+              <textarea name="address" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">อำเภอ/เขต</label>
+              <input type="text" name="district" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">จังหวัด</label>
+              <input type="text" name="province" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">รหัสไปรษณีย์</label>
+              <input type="text" name="zip_code" class="form-control" maxlength="5" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ช่องทางชำระเงิน -->
+        <div class="section-card">
+          <h6><i class="bi bi-credit-card me-2 text-danger"></i>ช่องทางชำระเงิน</h6>
+
+          <label class="payment-option d-flex align-items-center gap-3 selected" id="opt-promptpay">
+            <input type="radio" name="payment_method" value="promptpay" checked
+                   onchange="selectPayment('promptpay')">
+            <span class="payment-icon">📱</span>
+            <div>
+              <div class="fw-500">พร้อมเพย์ / QR Code</div>
+              <div class="text-muted small">สแกน QR จ่ายได้ทุกธนาคาร</div>
+            </div>
+          </label>
+
+          <label class="payment-option d-flex align-items-center gap-3" id="opt-card">
+            <input type="radio" name="payment_method" value="card"
+                   onchange="selectPayment('card')">
+            <span class="payment-icon">💳</span>
+            <div>
+              <div class="fw-500">บัตรเครดิต / เดบิต</div>
+              <div class="text-muted small">Visa, Mastercard ผ่าน Omise</div>
+            </div>
+          </label>
+
+          <!-- Card fields (hidden by default) -->
+          <div id="card-fields" style="display:none;" class="mt-3 p-3 bg-light rounded-3">
+            <div class="mb-3">
+              <label class="form-label small">หมายเลขบัตร</label>
+              <input type="text" id="card-number" class="form-control" placeholder="1234 5678 9012 3456"
+                     maxlength="19" oninput="formatCard(this)">
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label small">วันหมดอายุ</label>
+                <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5">
+              </div>
+              <div class="col-6">
+                <label class="form-label small">CVV</label>
+                <input type="text" id="card-cvv" class="form-control" placeholder="123" maxlength="3">
+              </div>
+            </div>
+            <p class="text-muted small mt-2 mb-0">
+              <i class="bi bi-lock-fill me-1 text-success"></i>ข้อมูลบัตรเข้ารหัส SSL ปลอดภัย 100%
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right column: Order summary -->
+      <div class="col-lg-5">
+        <div class="section-card summary-sticky">
+          <h6><i class="bi bi-receipt me-2 text-danger"></i>สรุปรายการสั่งซื้อ</h6>
+
+          {% for item in cart %}
+          <div class="order-item-row">
+            {% if item.image %}
+              <img src="{{ item.image }}" class="order-item-img" alt="{{ item.name }}">
+            {% else %}
+              <div class="order-item-placeholder"><i class="bi bi-gear"></i></div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <div>{{ item.name }}</div>
+              <div class="text-muted">x{{ item.qty }}</div>
+            </div>
+            <div class="fw-500 text-danger">฿{{ "{:,.0f}".format(item.price * item.qty) }}</div>
+          </div>
+          {% endfor %}
+
+          <hr class="my-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted">ราคาสินค้า</span>
+            <span>฿{{ "{:,.0f}".format(total) }}</span>
+          </div>
+          <div class="d-flex justify-content-between small mb-3">
+            <span class="text-muted">ค่าจัดส่ง</span>
+            <span class="text-success">ฟรี</span>
+          </div>
+          <div class="d-flex justify-content-between mb-4">
+            <span class="fw-600">ยอดรวม</span>
+            <span class="fw-600 text-danger fs-5">฿{{ "{:,.0f}".format(total) }}</span>
+          </div>
+
+          <button type="submit" class="btn-confirm">
+            <i class="bi bi-bag-check me-2"></i>ยืนยันคำสั่งซื้อ
+          </button>
+
+          <div class="d-flex align-items-center justify-content-center gap-2 mt-3 text-muted small">
+            <i class="bi bi-shield-check text-success"></i>
+            <span>ชำระเงินปลอดภัยด้วยระบบ SSL</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectPayment(type) {
+  document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('opt-' + type).classList.add('selected');
+  document.getElementById('card-fields').style.display = (type === 'card') ? 'block' : 'none';
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 16);
+  input.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,3 @@
+username: thanatx26_db_user
+password: g60But5FaZqzShY1
+link: mongodb+srv://thanatx26_db_user:g60But5FaZqzShY1@cluster0.uspxc1t.mongodb.net/?appName=Cluster0

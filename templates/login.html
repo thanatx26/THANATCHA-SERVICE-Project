@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}เข้าสู่ระบบ{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    padding: 40px 0;
+  }
+  .auth-card {
+    background: white;
+    border-radius: 16px;
+    padding: 36px 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
+    margin: auto;
+  }
+  .auth-logo { font-size: 1.5rem; font-weight: 600; color: var(--dark); }
+  .auth-logo span { color: var(--primary); }
+  .form-control {
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-color: #dee2e6;
+    font-family: 'Kanit', sans-serif;
+  }
+  .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(230,57,70,0.1); }
+  .btn-login {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+  .btn-login:hover { background: var(--primary-dark); }
+  .divider {
+    text-align: center;
+    position: relative;
+    margin: 20px 0;
+    color: #adb5bd;
+    font-size: 0.875rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #dee2e6;
+  }
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="container">
+    <div class="auth-card">
+      <div class="text-center mb-4">
+        <div class="auth-logo">⚙️ GARAGE<span>PRO</span></div>
+        <p class="text-muted mt-1 small">ยินดีต้อนรับกลับมา!</p>
+      </div>
+
+      <form action="/login" method="POST">
+        <div class="mb-3">
+          <label class="form-label small fw-500">ชื่อผู้ใช้</label>
+          <input type="text" name="username" class="form-control" placeholder="กรอกชื่อผู้ใช้" required autofocus>
+        </div>
+        <div class="mb-4">
+          <label class="form-label small fw-500">รหัสผ่าน</label>
+          <input type="password" name="password" class="form-control" placeholder="กรอกรหัสผ่าน" required>
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="bi bi-box-arrow-in-right me-2"></i>เข้าสู่ระบบ
+        </button>
+      </form>
+
+      <div class="divider">หรือ</div>
+      <div class="text-center small">
+        ยังไม่มีบัญชี? <a href="/register" class="text-danger fw-500">สมัครสมาชิกฟรี</a>
+      </div>
+      <div class="text-center mt-3">
+        <a href="/" class="text-muted small"><i class="bi bi-arrow-left me-1"></i>กลับหน้าหลัก</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+flask==3.0.3
+pymongo==4.7.3
+dnspython==2.6.1
+werkzeug==3.0.3
+python-dotenv==1.0.1
+omise==0.16.0
+requests==2.32.3
+Pillow==10.4.0
+gunicorn==22.0.0

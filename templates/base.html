@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Garage Pro{% endblock %} | ร้านอะไหล่มอเตอร์ไซค์</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #e63946;
+      --primary-dark: #c1121f;
+      --dark: #1d2b3a;
+      --gray-bg: #f4f6f9;
+    }
+    * { font-family: 'Kanit', sans-serif; }
+    body { background: var(--gray-bg); }
+
+    /* Navbar */
+    .navbar {
+      background: var(--dark) !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      padding: 10px 0;
+    }
+    .navbar-brand {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: white !important;
+      letter-spacing: 1px;
+    }
+    .navbar-brand span { color: var(--primary); }
+    .nav-link { color: rgba(255,255,255,0.85) !important; font-weight: 400; }
+    .nav-link:hover { color: white !important; }
+    .cart-btn {
+      background: var(--primary);
+      color: white !important;
+      border-radius: 20px;
+      padding: 6px 16px !important;
+      font-weight: 500;
+    }
+    .cart-btn:hover { background: var(--primary-dark); }
+    .cart-badge {
+      background: #ffd60a;
+      color: #000;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 50%;
+      padding: 1px 5px;
+      position: relative;
+      top: -2px;
+    }
+
+    /* Alerts */
+    .alert { border: none; border-radius: 10px; font-size: 0.9rem; }
+
+    /* Buttons */
+    .btn-primary { background: var(--primary); border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+    /* Footer */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.7);
+      padding: 40px 0 20px;
+      margin-top: 60px;
+    }
+    footer h6 { color: white; font-weight: 500; margin-bottom: 12px; }
+    footer a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.875rem; }
+    footer a:hover { color: white; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 30px;
+      padding-top: 16px;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">THANATCHA<span> SERVICE</span></a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <i class="bi bi-list text-white fs-4"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-3">
+        <li class="nav-item"><a class="nav-link" href="/?category=เครื่องยนต์"><i class="bi bi-gear"></i> เครื่องยนต์</a></li>
+        <li class="nav-item"><a class="nav-link" href="/?category=ระบบไฟฟ้า"><i class="bi bi-lightning"></i> ระบบไฟ</a></li>
+        <li class="nav-item"><a class="nav-link" href="/?category=อุปกรณ์สิ้นเปลือง"><i class="bi bi-shield"></i> อุปกรณ์สิ้นเปลือง</a></li>
+        <li class="nav-item"><a class="nav-link" href="/?category=ช่วงล่างและเบรค"><i class="bi bi-wrench"></i> ช่วงล่างและเบรค</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        {% if session.username %}
+          {% if session.role == 'admin' %}
+            <a href="/admin" class="btn btn-sm btn-outline-warning">
+              <i class="bi bi-speedometer2"></i> หลังบ้าน
+            </a>
+          {% else %}
+            <a href="/my-orders" class="nav-link"><i class="bi bi-box-seam"></i> คำสั่งซื้อ</a>
+          {% endif %}
+          <span class="text-white-50 small d-none d-lg-inline">สวัสดี, {{ session.username }}</span>
+          <a href="/logout" class="btn btn-sm btn-outline-light btn-sm">ออก</a>
+          <a href="/cart" class="cart-btn nav-link">
+            <i class="bi bi-cart3"></i> ตะกร้า
+            {% set cart_count = session.get('cart', []) | length %}
+            {% if cart_count > 0 %}
+              <span class="cart-badge">{{ cart_count }}</span>
+            {% endif %}
+          </a>
+        {% else %}
+          <a href="/login" class="btn btn-sm btn-outline-light">เข้าสู่ระบบ</a>
+          <a href="/register" class="btn btn-sm btn-danger">สมัครสมาชิก</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Main Content -->
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <h6>THANATCHA SERVICE </h6>
+        <p style="font-size:0.875rem">ร้านอะไหล่มอเตอร์ไซค์ออนไลน์ <br> ครบ จบ ในที่เดียว รับประกันสินค้าทุกชิ้น</p>
+      </div>
+      <div class="col-md-2">
+        <h6>หมวดหมู่</h6>
+        <div class="d-flex flex-column gap-1">
+          <a href="/?category=เครื่องยนต์">เครื่องยนต์</a>
+          <a href="/?category=ระบบไฟฟ้า">ระบบไฟ</a>
+          <a href="/?category=อุปกรณ์สิ้นเปลือง">อุปกรณ์สิ้นเปลือง</a> 
+          <a href="/?category=ช่วงล่างและเบรค">ช่วงล่างและเบรค</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <h6>บริการลูกค้า</h6>
+        <div class="d-flex flex-column gap-1">
+          <a href="/my-orders">ติดตามคำสั่งซื้อ</a>
+          <a href="#">นโยบายการคืนสินค้า</a>
+          <a href="#">วิธีการสั่งซื้อ</a>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <h6>ติดต่อเรา</h6>
+        <div style="font-size:0.875rem" class="d-flex flex-column gap-1">
+          <span><i class="bi bi-line me-1"></i> @night_7578</span>
+          <span><i class="bi bi-facebook me-1"></i> Thanat Cha</span>
+          <span><i class="bi bi-telephone me-1"></i> 095-752-0342</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 THANATCHA SERVICE — ร้านอะไหล่มอเตอร์ไซค์ออนไลน์
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

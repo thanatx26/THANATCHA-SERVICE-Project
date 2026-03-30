@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}สมัครสมาชิก{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    padding: 40px 0;
+  }
+  .auth-card {
+    background: white;
+    border-radius: 16px;
+    padding: 36px 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 480px;
+    margin: auto;
+  }
+  .auth-logo { font-size: 1.5rem; font-weight: 600; color: var(--dark); }
+  .auth-logo span { color: var(--primary); }
+  .form-control, .form-select {
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-color: #dee2e6;
+    font-family: 'Kanit', sans-serif;
+  }
+  .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(230,57,70,0.1); }
+  .btn-register {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+  .btn-register:hover { background: var(--primary-dark); }
+  .divider {
+    text-align: center;
+    position: relative;
+    margin: 20px 0;
+    color: #adb5bd;
+    font-size: 0.875rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 42%;
+    height: 1px;
+    background: #dee2e6;
+  }
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="container">
+    <div class="auth-card">
+      <div class="text-center mb-4">
+        <div class="auth-logo">⚙️ GARAGE<span>PRO</span></div>
+        <p class="text-muted mt-1 small">สร้างบัญชีใหม่เพื่อเริ่มช้อปปิ้ง</p>
+      </div>
+
+      <form action="/register" method="POST">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-500 small">ชื่อ-นามสกุล</label>
+            <input type="text" name="full_name" class="form-control" placeholder="เช่น สมชาย ใจดี" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-500 small">ชื่อผู้ใช้</label>
+            <input type="text" name="username" class="form-control" placeholder="username" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-500 small">เบอร์โทรศัพท์</label>
+            <input type="tel" name="phone" class="form-control" placeholder="08x-xxx-xxxx" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-500 small">อีเมล</label>
+            <input type="email" name="email" class="form-control" placeholder="example@email.com" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-500 small">รหัสผ่าน</label>
+            <input type="password" name="password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" required minlength="6">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-500 small">ยืนยันรหัสผ่าน</label>
+            <input type="password" name="confirm_password" class="form-control" placeholder="พิมพ์รหัสอีกครั้ง" required>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn-register">
+              <i class="bi bi-person-plus me-2"></i>สมัครสมาชิก
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="divider">หรือ</div>
+      <div class="text-center small">
+        มีบัญชีแล้ว? <a href="/login" class="text-danger fw-500">เข้าสู่ระบบ</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

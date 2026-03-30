@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}คำสั่งซื้อของฉัน{% endblock %}
+
+{% block extra_css %}
+<style>
+  .order-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.06); margin-bottom: 16px; }
+  .order-header { background: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .order-body { padding: 16px 20px; }
+  .order-id { font-family: monospace; font-weight: 600; color: var(--dark); }
+  .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+  .status-รอชำระเงิน { background: #fff3cd; color: #856404; }
+  .status-รอตรวจสอบ { background: #cff4fc; color: #055160; }
+  .status-ยืนยันแล้ว { background: #d1e7dd; color: #0a3622; }
+  .status-กำลังจัดส่ง { background: #cfe2ff; color: #0a367b; }
+  .status-จัดส่งแล้ว { background: #d1e7dd; color: #0a3622; }
+  .status-ยกเลิก { background: #f8d7da; color: #58151c; }
+  .item-mini { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.875rem; }
+  .item-mini-img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #f0f0f0; flex-shrink: 0; }
+  .item-placeholder { width: 40px; height: 40px; border-radius: 6px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #adb5bd; font-size: 1rem; flex-shrink: 0; }
+  .slip-preview { max-width: 120px; border-radius: 8px; cursor: pointer; border: 1px solid #ddd; }
+  .empty-state { text-align: center; padding: 80px 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 760px">
+  <h4 class="fw-600 mb-4"><i class="bi bi-box-seam me-2 text-danger"></i>คำสั่งซื้อของฉัน</h4>
+
+  {% if orders %}
+    {% for order in orders %}
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <span class="text-muted small me-2">คำสั่งซื้อ:</span>
+          <span class="order-id">{{ order.order_id }}</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="text-muted small">
+            {% if order.created_at and order.created_at.strftime %}
+              {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}
+            {% endif %}
+          </span>
+          <span class="status-badge status-{{ order.order_status }}">
+            {{ order.order_status }}
+          </span>
+        </div>
+      </div>
+
+      <div class="order-body">
+        {% if order['items'] %}
+          {% for item in order['items'] %}
+          <div class="item-mini">
+            {% if item.image %}<img src="{{ item.image }}" class="item-mini-img">
+            {% else %}<div class="item-placeholder"><i class="bi bi-gear"></i></div>{% endif %}
+            <div class="flex-grow-1">{{ item.name }}</div>
+            <div class="text-muted small">x{{ item.qty or 1 }}</div>
+            <div class="fw-500">฿{{ "{:,.0f}".format((item.price or 0) * (item.qty or 1)) }}</div>
+          </div>
+          {% endfor %}
+        {% endif %}
+
+        <hr class="my-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            {% if order.slip_image %}
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ order.slip_image }}" class="slip-preview" onclick="window.open(this.src,'_blank')">
+                <span class="text-muted small">สลิปที่แนบ</span>
+              </div>
+            {% elif order.order_status == 'รอชำระเงิน' %}
+              <a href="/order/payment/{{ order._id }}" class="btn btn-sm btn-danger">ชำระเงิน</a>
+            {% endif %}
+          </div>
+          <div class="text-end">
+            <div class="text-muted small">ยอดรวม</div>
+            <div class="fw-600 text-danger" style="font-size:1.1rem">฿{{ "{:,.0f}".format(order.total or 0) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state bg-white rounded-4">
+      <h5 class="text-muted">ยังไม่มีคำสั่งซื้อ</h5>
+      <a href="/" class="btn btn-danger mt-2">เลือกซื้อสินค้า</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
